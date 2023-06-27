@@ -109,26 +109,21 @@ def queueWorker(clients: list, sequenceCount: int):
             case 0:
                 item = clickQueue.get()
                 if not item is None:
-                    time.sleep(delay)
-                    press("alt")
-                    time.sleep(delay)
                     win32gui.SetForegroundWindow(item['client'])
-                    for j in range(int(item['count'])):
-                        press("space")
+                    time.sleep(delay)
+                    press("space", int(item['count']))
             
                     i += 1
                     
                 if i == sequenceCount:
-                    time.sleep(12)
+                    time.sleep(8)
                     lockedClients = []
                     state = 1
                     
             case 1:
                 for client in clients:
-                    press("alt")
-                    time.sleep(delay)
                     win32gui.SetForegroundWindow(client)
-                    time.sleep(delay)
+                    time.sleep(0.1 + delay)
                     press("space")                    
                     
                 state = 0
