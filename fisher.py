@@ -9,9 +9,11 @@ import cv2 as cv
 import numpy as np
 import time
 import queue
+import random
 from pydirectinput import keyDown, keyUp, press, click
 from keyboard import is_pressed
 from playsound import playsound
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -56,11 +58,8 @@ def prepareClient(client):
     press('ALT')
     win32gui.SetForegroundWindow(client)
     time.sleep(0.1)
-    keyDown('f')
-    time.sleep(1.5)
-    keyUp('f')
     keyDown('r')
-    time.sleep(1.5)
+    time.sleep(2)
     keyUp('r')
     keyDown('f')
     time.sleep(0.3)
@@ -103,69 +102,69 @@ def queueWorker(clients: list, sequenceCount: int):
     i = 0
     j = 0
     throwList = queue.Queue()
-    delay = np.random.uniform(0.02, 0.08)
+    delay = random.uniform(0.02, 0.04)
     state = 0
     while True:
         match state:
             case 0:
                 item = clickQueue.get()
                 if not item is None:
+                    time.sleep(delay)
+                    press("alt")
+                    time.sleep(delay)
                     win32gui.SetForegroundWindow(item['client'])
-                    time.sleep(0.1+delay)
                     for j in range(int(item['count'])):
-                        keyDown("space")
-                        time.sleep(0.1+delay)
-                        keyUp("space")
+                        press("space")
             
                     i += 1
                     
                 if i == sequenceCount:
-                    time.sleep(10)
+                    time.sleep(12)
                     lockedClients = []
                     state = 1
                     
             case 1:
                 for client in clients:
+                    press("alt")
+                    time.sleep(delay)
                     win32gui.SetForegroundWindow(client)
-                    time.sleep(0.1+delay)
-                    keyDown("space")
-                    time.sleep(0.1+delay)
+                    time.sleep(delay)
+                    press("space")                    
                     
                 state = 0
                 i = 0
     
 def lookForNumbers(clients: list, needles):
-    global lockedClients0
+    global lockedClients
     clientCount = len(clients)
     threading.Thread(target=queueWorker, args=(clients, clientCount), daemon=True).start()
     
     max_found_val = 0.0
     while not is_pressed('0'):
         for client in clients:
-            capture = windowCapture(client, 350, 120)
-            capture = np.array(capture)
-            # capture = cv.cvtColor(capture, cv.COLOR_)
-            # cv.imshow("Bot vision", capture)
-            # cv.waitKey(1)
+            if not client in lockedClients:
+                capture = windowCapture(client, 350, 120)
+                capture = np.array(capture)
+                # cv.imshow("Bot vision", capture)
+                # cv.waitKey(1)
 
-
-            # os.system('cls')
-            pickedNeedle = None
-            threshold = 0.40
-            highestVal = 0.0
-            for index, needle in needles.items():
-                result = cv.matchTemplate(capture, needle, cv.TM_CCOEFF_NORMED)
-                min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+                # os.system('cls')
+                pickedNeedle = None
+                threshold = 0.55
+                highestVal = 0.0
+                for index, needle in needles.items():
+                    result = cv.matchTemplate(capture, needle, cv.TM_CCOEFF_NORMED)
+                    min_val, max_val, min_loc, max_loc = cv.minMaxLoc(result)
+                    
+                    # print(f'{index} - {max_val}')
+                    if max_val > highestVal:
+                        highestVal = max_val
+                        pickedNeedle = index
                 
-                # print(f'{index} - {max_val}')
-                if max_val > highestVal:
-                    highestVal = max_val
-                    pickedNeedle = index
-            
-            if highestVal > 0 and highestVal > threshold and client not in lockedClients:
-                clickQueue.put({"client": client, "count": pickedNeedle})
-                lockedClients.append(client)
-                print(bcolors.OKBLUE + 'Klikam ', pickedNeedle , ' razy, pewność: ', highestVal, bcolors.ENDC)
+                if highestVal > 0 and highestVal > threshold and client not in lockedClients:
+                    clickQueue.put({"client": client, "count": pickedNeedle})
+                    lockedClients.append(client)
+                    print(bcolors.OKBLUE + 'Klikam ', pickedNeedle , ' razy, pewność: ', highestVal, bcolors.ENDC)
                 
 
 def prepare(clients: list):
