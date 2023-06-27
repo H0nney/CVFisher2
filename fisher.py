@@ -38,20 +38,15 @@ def loadNeedles():
             img = cv.imread(file, cv.IMREAD_COLOR) 
             items[index] = img
         
-        # Clear console
         os.system('cls')
-        ##################
         print(bcolors.OKGREEN + 'Załadowano zrzuty liczb' + bcolors.ENDC)
-        ##################
         return items
     else:
         # Clear console
         os.system('cls')
-        ##################
         print(bcolors.FAIL + '######################## ERROR ########################' + bcolors.ENDC)
         print(bcolors.WARNING + 'Umieść wycięte screeny (png) liczb które wyskakują przy łowieniu.\nNie zapisuj wycinków w paincie (ważne)' + bcolors.ENDC)
         print(bcolors.FAIL + '######################## ERROR ########################' + bcolors.ENDC)
-        ##################
         exit()
 
 def prepareClient(client):
@@ -100,8 +95,6 @@ def queueWorker(clients: list, sequenceCount: int):
     global lockedClients
     
     i = 0
-    j = 0
-    throwList = queue.Queue()
     delay = random.uniform(0.02, 0.04)
     state = 0
     while True:
@@ -134,7 +127,6 @@ def lookForNumbers(clients: list, needles):
     clientCount = len(clients)
     threading.Thread(target=queueWorker, args=(clients, clientCount), daemon=True).start()
     
-    max_found_val = 0.0
     while not is_pressed('0'):
         for client in clients:
             if not client in lockedClients:
@@ -165,7 +157,6 @@ def lookForNumbers(clients: list, needles):
 def prepare(clients: list):
     os.system('cls')
     needles = loadNeedles()
-    fisher_state = 0
     
     for client in clients:
         print(bcolors.OKGREEN + 'Przygotowuję klienta' + bcolors.ENDC)
